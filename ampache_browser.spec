@@ -1,19 +1,29 @@
+#
+# Conditional build:
+%bcond_with	qt5	# Qt5 instead of Qt6
+
 Summary:	Ampache desktop client library
 Summary(pl.UTF-8):	Biblioteka graficznego klienta Ampache
 Name:		ampache_browser
-Version:	1.0.3
+Version:	1.0.7
 Release:	1
 License:	GPL v3
 Group:		Libraries
 #Source0Download: https://github.com/ampache-browser/ampache_browser/releases
 Source0:	https://github.com/ampache-browser/ampache_browser/archive/v%{version}/%{name}_%{version}.tar.gz
-# Source0-md5:	23f9cca4171662e4ecaa7aa51f4ccd0b
+# Source0-md5:	8f106232fc0d0e7b13685d65e825bd73
 URL:		https://github.com/ampache-browser/ampache_browser
+%if %{with qt5}
 BuildRequires:	Qt5Concurrent-devel >= 5
 BuildRequires:	Qt5Core-devel >= 5
 BuildRequires:	Qt5Widgets-devel >= 5
-BuildRequires:	cmake >= 3.0
-BuildRequires:	libstdc++-devel >= 6:4.7
+%else
+BuildRequires:	Qt6Concurrent-devel >= 6
+BuildRequires:	Qt6Core-devel >= 6
+BuildRequires:	Qt6Widgets-devel >= 6
+%endif
+BuildRequires:	cmake >= 3.13
+BuildRequires:	libstdc++-devel >= 6:7
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -33,7 +43,7 @@ Summary:	Header files for Ampache Browser library
 Summary(pl.UTF-8):	Pliki nagłówkowe biblioteki Ampache Browser
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	libstdc++-devel >= 6:4.7
+Requires:	libstdc++-devel >= 6:7
 
 %description devel
 Header files for Ampache Browser library.
@@ -45,13 +55,12 @@ Pliki nagłówkowe biblioteki Ampache Browser.
 %setup -q -n ampache_browser-%{version}
 
 %build
-install -d build
-cd build
-%cmake .. \
+%cmake -B build \
 	-DCMAKE_INSTALL_INCLUDEDIR=include \
-	-DCMAKE_INSTALL_LIBDIR=%{_lib}
+	-DCMAKE_INSTALL_LIBDIR=%{_lib} \
+	%{?with_qt5:-DUSE_QT6=OFF}
 
-%{__make}
+%{__make} -C build
 
 %install
 rm -rf $RPM_BUILD_ROOT
